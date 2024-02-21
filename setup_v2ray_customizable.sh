@@ -44,7 +44,7 @@ fi
 CONFIG_FILE="./v2ray/config.json"
 
 # 自动获取本机IP地址，排除本地回环地址和docker内部网络地址
-IP_ADDRESSES=($(ip addr show | grep "inet\b" | awk "{print \$2}" | cut -d/ -f1 | grep -v -E "^127\.|^172\.17\."))
+IP_ADDRESSES=($(ip addr show | grep "inet\b" | awk '{print \$2}' | cut -d/ -f1 | grep -v -E "^127\.|^172\.17\."))
 
 # 初始化配置文件的内容
 CONFIG_JSON="{\n    \"inbounds\": [\n"
@@ -66,7 +66,7 @@ if [ "$ENCRYPTION" == "ws" ]; then
                 "streamSettings": {
                     "network": "ws",
                     "wsSettings": {
-                        "path": "PATH",
+                        "path": "V2RAY_PATH_IN",
                         "headers": {
                             "Host": "HOST"
                         }
@@ -95,7 +95,7 @@ fi
 
 INBOUND_TEMPLATE=${INBOUND_TEMPLATE//PORT/$PORT}
 INBOUND_TEMPLATE=${INBOUND_TEMPLATE//ID/$ID}
-INBOUND_TEMPLATE=${INBOUND_TEMPLATE//PATH/$V2RAY_PATH}
+INBOUND_TEMPLATE=${INBOUND_TEMPLATE//V2RAY_PATH_IN/$V2RAY_PATH}
 INBOUND_TEMPLATE=${INBOUND_TEMPLATE//HOST/$HOST}
 
 # 为每个 IP 地址生成 inbounds 和 outbounds 条目
