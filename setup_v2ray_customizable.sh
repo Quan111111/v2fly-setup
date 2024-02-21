@@ -1,33 +1,37 @@
 #!/bin/bash
 
-# ¸üĞÂÏµÍ³²¢°²×° Docker
+# æ›´æ–°ç³»ç»Ÿå¹¶å®‰è£… Docker
 sudo apt update && sudo apt upgrade -y
 sudo apt install docker.io -y
-# Èç¹ûÄãÏëÊ¹ÓÃ snap °²×° Docker£¬¿ÉÒÔÈ¡ÏûÏÂÃæÁ½ĞĞµÄ×¢ÊÍ
+# å¦‚æœä½ æƒ³ä½¿ç”¨ snap å®‰è£… Dockerï¼Œå¯ä»¥å–æ¶ˆä¸‹é¢ä¸¤è¡Œçš„æ³¨é‡Š
 # sudo snap refresh snapd
 # sudo snap install docker
 
-# À­È¡ v2fly µÄ Docker ¾µÏñ
+# æ‹‰å– v2fly çš„ Docker é•œåƒ
 docker pull v2fly/v2fly-core
 
-# ´´½¨ÅäÖÃÎÄ¼şÄ¿Â¼
+# åˆ›å»ºé…ç½®æ–‡ä»¶ç›®å½•
 mkdir -p ./v2ray/
 
-# ´´½¨ create_v2ray_config.sh ½Å±¾
+# åˆ›å»º create_v2ray_config.sh è„šæœ¬
 cat << 'EOF' > ./create_v2ray_config.sh
 #!/bin/bash
 
-# ÓÃ»§ÊäÈë
+# ç”¨æˆ·è¾“å…¥
 read -p "Enter port [12345]: " PORT
 PORT=${PORT:-12345}
 
 read -p "Enter ID [00000000-0000-0000-0000-000000000000]: " ID
 ID=${ID:-00000000-0000-0000-0000-000000000000}
 
-read -p "Enter encryption method (currently only 'ws' is supported) [ws]: " ENCRYPTION
-ENCRYPTION=${ENCRYPTION:-ws}
+read -p "Enter encryption method (tcp or ws) [tcp]: " ENCRYPTION
+ENCRYPTION=${ENCRYPTION:-tcp}
 
-# Èç¹ûÑ¡ÔñÁËws¼ÓÃÜ·½Ê½£¬½øÒ»²½»ñÈ¡pathºÍhostµÄÅäÖÃ
+# æ ¹æ®åŠ å¯†æ–¹å¼é€‰æ‹©ï¼Œåˆå§‹åŒ–å˜é‡
+V2RAY_PATH="/"
+HOST=""
+
+# å¦‚æœé€‰æ‹©äº†wsåŠ å¯†æ–¹å¼ï¼Œè¿›ä¸€æ­¥è·å–pathå’Œhostçš„é…ç½®
 if [ "$ENCRYPTION" == "ws" ]; then
     read -p "Enter path [/path_test]: " V2RAY_PATH
     V2RAY_PATH=${V2RAY_PATH:-/path_test}
@@ -36,46 +40,65 @@ if [ "$ENCRYPTION" == "ws" ]; then
     HOST=${HOST:-vmess_ws_test}
 fi
 
-
-# ¶¨ÒåÅäÖÃÎÄ¼şµÄÂ·¾¶
+# å®šä¹‰é…ç½®æ–‡ä»¶çš„è·¯å¾„
 CONFIG_FILE="./v2ray/config.json"
 
-# ×Ô¶¯»ñÈ¡±¾»úIPµØÖ·£¬ÅÅ³ı±¾µØ»Ø»·µØÖ·ºÍdockerÄÚ²¿ÍøÂçµØÖ·
-IP_ADDRESSES=($(ip addr show | grep "inet\b" | awk "{print \$2}" | cut -d/ -f1 | grep -v -E "^127\.|^172\.17\."))
+# è‡ªåŠ¨è·å–æœ¬æœºIPåœ°å€ï¼Œæ’é™¤æœ¬åœ°å›ç¯åœ°å€å’Œdockerå†…éƒ¨ç½‘ç»œåœ°å€
+IP_ADDRESSES=($(ip addr show | grep "inet\b" | awk "{print \\$2}" | cut -d/ -f1 | grep -v -E "^127\.|^172\.17\."))
 
-# ³õÊ¼»¯ÅäÖÃÎÄ¼şµÄÄÚÈİ
+# åˆå§‹åŒ–é…ç½®æ–‡ä»¶çš„å†…å®¹
 CONFIG_JSON="{\n    \"inbounds\": [\n"
-INBOUND_TEMPLATE='        {
-            "tag": "in-TAG",
-            "listen": "IP_ADDRESS",
-            "port": PORT,
-            "protocol": "vmess",
-            "settings": {
-                "clients": [
-                    {
-                        "id": "ID"
-                    }
-                ]
-            },
-            "streamSettings": {
-                "network": "ENCRYPTION",
-                "wsSettings": {
-                    "path": "PATH",
-                    "headers": {
-                        "Host": "HOST"
+
+# æ ¹æ®åŠ å¯†æ–¹å¼è°ƒæ•´ INBOUND_TEMPLATE
+if [ "$ENCRYPTION" == "ws" ]; then
+    INBOUND_TEMPLATE='        {
+                "tag": "in-TAG",
+                "listen": "IP_ADDRESS",
+                "port": PORT,
+                "protocol": "vmess",
+                "settings": {
+                    "clients": [
+                        {
+                            "id": "ID"
+                        }
+                    ]
+                },
+                "streamSettings": {
+                    "network": "ws",
+                    "wsSettings": {
+                        "path": "PATH",
+                        "headers": {
+                            "Host": "HOST"
+                        }
                     }
                 }
-            }
-        }'
+            }'
+elif [ "$ENCRYPTION" == "tcp" ]; then
+    INBOUND_TEMPLATE='        {
+                "tag": "in-TAG",
+                "listen": "IP_ADDRESS",
+                "port": PORT,
+                "protocol": "vmess",
+                "settings": {
+                    "clients": [
+                        {
+                            "id": "ID"
+                        }
+                    ]
+                }
+            }'
+else
+    echo "Error: Invalid encryption method. Please choose 'tcp' or 'ws'."
+    exit 1
+fi
 
-# Ìæ»»Ä£°åÖĞµÄÕ¼Î»·û
+
 INBOUND_TEMPLATE=${INBOUND_TEMPLATE//PORT/$PORT}
 INBOUND_TEMPLATE=${INBOUND_TEMPLATE//ID/$ID}
-INBOUND_TEMPLATE=${INBOUND_TEMPLATE//ENCRYPTION/$ENCRYPTION}
 INBOUND_TEMPLATE=${INBOUND_TEMPLATE//PATH/$V2RAY_PATH}
 INBOUND_TEMPLATE=${INBOUND_TEMPLATE//HOST/$HOST}
 
-# ÎªÃ¿¸ö IP µØÖ·Éú³É inbounds ºÍ outbounds ÌõÄ¿
+# ä¸ºæ¯ä¸ª IP åœ°å€ç”Ÿæˆ inbounds å’Œ outbounds æ¡ç›®
 for i in "${!IP_ADDRESSES[@]}"; do
     TAG_NUM=$(printf "%02d" $((i+1)))
     INBOUND_ENTRY=${INBOUND_TEMPLATE//IP_ADDRESS/${IP_ADDRESSES[$i]}}
@@ -84,53 +107,38 @@ for i in "${!IP_ADDRESSES[@]}"; do
     CONFIG_JSON+="$INBOUND_ENTRY,\n"
 done
 
-# Ìí¼Ó outbounds ²¿·ÖµÄ¿ªÊ¼
-CONFIG_JSON+="    ],\n    \"outbounds\": [\n"
+# åˆ é™¤æœ€åä¸€ä¸ªé€—å·
+CONFIG_JSON=\${CONFIG_JSON%,}
 
-OUTBOUND_TEMPLATE='        {
-            "tag": "out-TAG",
-            "sendThrough": "IP_ADDRESS",
-            "protocol": "freedom"
-        }'
+# æ·»åŠ  outbounds éƒ¨åˆ†çš„å¼€å§‹
+CONFIG_JSON+="    ],\n    \"outbounds\": [\n        {
+            \"protocol\": \"freedom\",
+            \"settings\": {}
+        }\n    ]\n}"
 
-# ÎªÃ¿¸ö IP µØÖ·Ìí¼Ó outbounds ÌõÄ¿
-for i in "${!IP_ADDRESSES[@]}"; do
-    TAG_NUM=$(printf "%02d" $((i+1)))
-    OUTBOUND_ENTRY=${OUTBOUND_TEMPLATE//IP_ADDRESS/${IP_ADDRESSES[$i]}}
-    OUTBOUND_ENTRY=${OUTBOUND_ENTRY//TAG/$TAG_NUM}
+# ç¡®ä¿ v2ray ç›®å½•å­˜åœ¨
+mkdir -p \$(dirname "$CONFIG_FILE")
 
-    CONFIG_JSON+="$OUTBOUND_ENTRY"
-    if [ $i -lt $((${#IP_ADDRESSES[@]} - 1)) ]; then
-        CONFIG_JSON+=",\n"
-    fi
-done
-
-# Íê³ÉÅäÖÃÎÄ¼şµÄÄÚÈİ
-CONFIG_JSON+="\n    ]\n}"
-
-# È·±£ v2ray Ä¿Â¼´æÔÚ
-mkdir -p $(dirname "$CONFIG_FILE")
-
-# ½«ĞÂµÄÅäÖÃĞ´ÈëÎÄ¼ş
+# å°†æ–°çš„é…ç½®å†™å…¥æ–‡ä»¶
 echo -e "$CONFIG_JSON" > "$CONFIG_FILE"
 
 echo "Configuration file has been created at $CONFIG_FILE"
 EOF
 
-# Ìí¼ÓÖ´ĞĞÈ¨ÏŞ
+# æ·»åŠ æ‰§è¡Œæƒé™
 chmod +x ./create_v2ray_config.sh
 
-# Ö´ĞĞ½Å±¾Éú³ÉÅäÖÃÎÄ¼ş
+# æ‰§è¡Œè„šæœ¬ç”Ÿæˆé…ç½®æ–‡ä»¶
 ./create_v2ray_config.sh
 
-# Í£Ö¹²¢É¾³ıÒÑ´æÔÚµÄÈİÆ÷
+# åœæ­¢å¹¶åˆ é™¤å·²å­˜åœ¨çš„å®¹å™¨
 if [ $(docker ps -a -q -f name=v2fly) ]; then
     echo "Stopping and removing existing v2fly container..."
     docker stop v2fly
     docker rm v2fly
 fi
 
-# Ê¹ÓÃ Docker Æô¶¯ V2Ray ·şÎñ
+# ä½¿ç”¨ Docker å¯åŠ¨ V2Ray æœåŠ¡
 docker run --network host -d --name v2fly -v $(pwd)/v2ray/config.json:/etc/v2ray/config.json v2fly/v2fly-core run -c /etc/v2ray/config.json
 
 echo "V2Ray Docker container has been started."
