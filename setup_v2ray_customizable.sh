@@ -117,7 +117,7 @@ CONFIG_JSON+="    ],\n    \"outbounds\": [\n        {
         }\n    ]\n}"
 
 # 确保 v2ray 目录存在
-mkdir -p \$(dirname "$CONFIG_FILE")
+mkdir -p $(dirname "$CONFIG_FILE")
 
 # 将新的配置写入文件
 echo -e "$CONFIG_JSON" > "$CONFIG_FILE"
