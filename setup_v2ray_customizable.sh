@@ -115,10 +115,27 @@ for i in "${!IP_ADDRESSES[@]}"; do
 done
 
 # 添加 outbounds 部分的开始
-CONFIG_JSON+="    ],\n    \"outbounds\": [\n        {
-            \"protocol\": \"freedom\",
-            \"settings\": {}
-        }\n    ]\n}"
+CONFIG_JSON+="    ],\n    \"outbounds\": [\n"
+
+# 为每个 IP 地址生成对应的 outbounds 条目
+for i in "${!IP_ADDRESSES[@]}"; do
+    TAG_NUM=$(printf "%02d" $((i+1)))
+    # 使用 freedom 协议，为每个 inbound 创建一个对应的 outbound
+    OUTBOUND_ENTRY='        {
+            "tag": "out-TAG",
+            "protocol": "freedom",
+            "settings": {}
+        }'
+    OUTBOUND_ENTRY=${OUTBOUND_ENTRY//TAG/$TAG_NUM}
+
+    CONFIG_JSON+="$OUTBOUND_ENTRY"
+    if [ $i -lt $((${#IP_ADDRESSES[@]} - 1)) ]; then
+        CONFIG_JSON+=",\n"
+    fi
+done
+
+# 完成配置文件的内容
+CONFIG_JSON+="\n    ]\n}"
 
 # 将新的配置写入文件
 echo -e "$CONFIG_JSON" > "$CONFIG_FILE"
@@ -134,13 +151,13 @@ chmod +x /root/create_v2ray_config.sh
 /root/create_v2ray_config.sh
 
 # 停止并删除已存在的容器
-if [ $(docker ps -a -q -f name=v2fly) ]; then
+if [ $(docker ps -a -q -f name=test) ]; then
     echo "Stopping and removing existing v2fly container..."
-    docker stop v2fly
-    docker rm v2fly
+    docker stop test
+    docker rm test
 fi
 
 # 使用 Docker 启动 V2Ray 服务
-docker run --network host -d --name v2fly -v /root/v2ray/config.json:/etc/v2ray/config.json v2fly/v2fly-core run -c /etc/v2ray/config.json
+docker run --network host -d --name test -v /root/v2ray/config.json:/etc/v2ray/config.json v2fly/v2fly-core run -c /etc/v2ray/config.json
 
 echo "V2Ray Docker container has been started."
