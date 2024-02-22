@@ -97,18 +97,22 @@ INBOUND_TEMPLATE=${INBOUND_TEMPLATE//ID/$ID}
 INBOUND_TEMPLATE=${INBOUND_TEMPLATE//V2RAY_PATH_IN/$V2RAY_PATH}
 INBOUND_TEMPLATE=${INBOUND_TEMPLATE//HOST/$HOST}
 
-# 为每个 IP 地址生成 inbounds 和 outbounds 条目
+# 为每个 IP 地址生成 inbounds 条目
 for i in "${!IP_ADDRESSES[@]}"; do
     TAG_NUM=$(printf "%02d" $((i+1)))
     INBOUND_ENTRY=${INBOUND_TEMPLATE//IP_ADDRESS/${IP_ADDRESSES[$i]}}
     INBOUND_ENTRY=${INBOUND_ENTRY//TAG/$TAG_NUM}
 
-    CONFIG_JSON+="$INBOUND_ENTRY,\n"
-done
+    # 添加当前条目到配置
+    CONFIG_JSON+="$INBOUND_ENTRY"
 
-# 使用 sed 来移除最后一个逗号
-# 注意：这里我们先将 CONFIG_JSON 的值输出到 echo，再通过管道传递给 sed 命令处理
-CONFIG_JSON=$(echo -e "$CONFIG_JSON" | sed '$s/,$//')
+    # 如果当前条目不是最后一个，则添加逗号和换行符
+    if [ $((i+1)) -lt ${#IP_ADDRESSES[@]} ]; then
+        CONFIG_JSON+=",\n"
+    else
+        CONFIG_JSON+="\n"
+    fi
+done
 
 # 添加 outbounds 部分的开始
 CONFIG_JSON+="    ],\n    \"outbounds\": [\n        {
