@@ -44,13 +44,21 @@ OUTBOUND_TEMPLATE='        {
             "protocol": "freedom"
         }'
 
-# 为每个 IP 地址生成 inbounds 和 outbounds 条目
+# 为每个 IP 地址生成 inbounds 条目
 for i in "${!IP_ADDRESSES[@]}"; do
     TAG_NUM=$(printf "%02d" $((i+1)))
     INBOUND_ENTRY=${INBOUND_TEMPLATE//IP_ADDRESS/${IP_ADDRESSES[$i]}}
     INBOUND_ENTRY=${INBOUND_ENTRY//TAG/$TAG_NUM}
 
-    CONFIG_JSON+="$INBOUND_ENTRY,\n"
+    # 添加当前条目到配置
+    CONFIG_JSON+="$INBOUND_ENTRY"
+
+    # 如果当前条目不是最后一个，则添加逗号和换行符
+    if [ $((i+1)) -lt ${#IP_ADDRESSES[@]} ]; then
+        CONFIG_JSON+=",\n"
+    else
+        CONFIG_JSON+="\n"
+    fi
 done
 
 # 添加 outbounds 部分的开始
