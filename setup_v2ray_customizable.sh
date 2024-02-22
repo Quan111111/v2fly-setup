@@ -11,10 +11,10 @@ sudo apt install docker.io -y
 docker pull v2fly/v2fly-core
 
 # 创建配置文件目录
-mkdir -p ./v2ray/
+mkdir -p /root/v2ray/
 
 # 创建 create_v2ray_config.sh 脚本
-cat << 'EOF' > ./create_v2ray_config.sh
+cat << 'EOF' > /root/create_v2ray_config.sh
 #!/bin/bash
 
 # 用户输入
@@ -41,7 +41,7 @@ if [ "$ENCRYPTION" == "ws" ]; then
 fi
 
 # 定义配置文件的路径
-CONFIG_FILE="./v2ray/config.json"
+CONFIG_FILE="/root/v2ray/config.json"
 
 # 自动获取本机IP地址，排除本地回环地址和docker内部网络地址
 IP_ADDRESSES=($(ip addr show | grep "inet\b" | awk "{print \$2}" | cut -d/ -f1 | grep -v -E "^127\.|^172\.17\."))
@@ -92,7 +92,6 @@ else
     exit 1
 fi
 
-
 INBOUND_TEMPLATE=${INBOUND_TEMPLATE//PORT/$PORT}
 INBOUND_TEMPLATE=${INBOUND_TEMPLATE//ID/$ID}
 INBOUND_TEMPLATE=${INBOUND_TEMPLATE//V2RAY_PATH_IN/$V2RAY_PATH}
@@ -107,8 +106,9 @@ for i in "${!IP_ADDRESSES[@]}"; do
     CONFIG_JSON+="$INBOUND_ENTRY,\n"
 done
 
-# 删除最后一个逗号
-CONFIG_JSON=\${CONFIG_JSON%,}
+# 使用 sed 来移除最后一个逗号
+# 注意：这里我们先将 CONFIG_JSON 的值输出到 echo，再通过管道传递给 sed 命令处理
+CONFIG_JSON=$(echo -e "$CONFIG_JSON" | sed '$s/,$//')
 
 # 添加 outbounds 部分的开始
 CONFIG_JSON+="    ],\n    \"outbounds\": [\n        {
@@ -116,20 +116,18 @@ CONFIG_JSON+="    ],\n    \"outbounds\": [\n        {
             \"settings\": {}
         }\n    ]\n}"
 
-# 确保 v2ray 目录存在
-mkdir -p $(dirname "$CONFIG_FILE")
-
 # 将新的配置写入文件
 echo -e "$CONFIG_JSON" > "$CONFIG_FILE"
+
 
 echo "Configuration file has been created at $CONFIG_FILE"
 EOF
 
 # 添加执行权限
-chmod +x ./create_v2ray_config.sh
+chmod +x /root/create_v2ray_config.sh
 
 # 执行脚本生成配置文件
-./create_v2ray_config.sh
+/root/create_v2ray_config.sh
 
 # 停止并删除已存在的容器
 if [ $(docker ps -a -q -f name=v2fly) ]; then
@@ -139,6 +137,6 @@ if [ $(docker ps -a -q -f name=v2fly) ]; then
 fi
 
 # 使用 Docker 启动 V2Ray 服务
-docker run --network host -d --name v2fly -v $(pwd)/v2ray/config.json:/etc/v2ray/config.json v2fly/v2fly-core run -c /etc/v2ray/config.json
+docker run --network host -d --name v2fly -v /root/v2ray/config.json:/etc/v2ray/config.json v2fly/v2fly-core run -c /etc/v2ray/config.json
 
 echo "V2Ray Docker container has been started."
