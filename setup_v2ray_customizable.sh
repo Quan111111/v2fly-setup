@@ -134,14 +134,33 @@ for i in "${!IP_ADDRESSES[@]}"; do
     fi
 done
 
-# 完成配置文件的内容
-CONFIG_JSON+="\n    ]\n}"
+# 添加 routing 部分的开始
+CONFIG_JSON+="\n    ],\n    \"routing\": {\n        \"rules\": [\n"
+
+# 为每个 IP 地址生成对应的 routing 条目
+for i in "${!IP_ADDRESSES[@]}"; do
+    TAG_NUM=$(printf "%02d" $((i+1)))
+    ROUTING_ENTRY='            {
+                "type": "field",
+                "inboundTag": "in-TAG",
+                "outboundTag": "out-TAG"
+            }'
+    ROUTING_ENTRY=${ROUTING_ENTRY//TAG/$TAG_NUM}
+
+    CONFIG_JSON+="$ROUTING_ENTRY"
+    if [ $i -lt $((${#IP_ADDRESSES[@]} - 1)) ]; then
+        CONFIG_JSON+=",\n"
+    fi
+done
+
+# 完成 routing 部分的内容
+CONFIG_JSON+="\n        ]\n    }\n}"
 
 # 将新的配置写入文件
 echo -e "$CONFIG_JSON" > "$CONFIG_FILE"
 
-
 echo "Configuration file has been created at $CONFIG_FILE"
+
 EOF
 
 # 添加执行权限

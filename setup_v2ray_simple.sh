@@ -43,6 +43,11 @@ OUTBOUND_TEMPLATE='        {
             "sendThrough": "IP_ADDRESS",
             "protocol": "freedom"
         }'
+ROUTE_TEMPLATE='            {
+                "type": "field",
+                "inboundTag": "in-TAG",
+                "outboundTag": "out-TAG"
+            }'
 
 # 为每个 IP 地址生成 inbounds 条目
 for i in "${!IP_ADDRESSES[@]}"; do
@@ -76,8 +81,22 @@ for i in "${!IP_ADDRESSES[@]}"; do
     fi
 done
 
+# 添加 routing 部分的开始
+CONFIG_JSON+="\n    ],\n    \"routing\": {\n        \"rules\": [\n"
+
+# 为每个 IP 地址添加 routing 条目
+for i in "${!IP_ADDRESSES[@]}"; do
+    TAG_NUM=$(printf "%02d" $((i+1)))
+    ROUTE_ENTRY=${ROUTE_TEMPLATE//TAG/$TAG_NUM}
+
+    CONFIG_JSON+="$ROUTE_ENTRY"
+    if [ $i -lt $((${#IP_ADDRESSES[@]} - 1)) ]; then
+        CONFIG_JSON+=",\n"
+    fi
+done
+
 # 完成配置文件的内容
-CONFIG_JSON+="\n    ]\n}"
+CONFIG_JSON+="\n        ]\n    }\n}"
 
 # 确保 v2ray 目录存在
 mkdir -p $(dirname "$CONFIG_FILE")
@@ -86,6 +105,7 @@ mkdir -p $(dirname "$CONFIG_FILE")
 echo -e "$CONFIG_JSON" > "$CONFIG_FILE"
 
 echo "Configuration file has been created at $CONFIG_FILE"
+
 EOF
 
 # 添加执行权限
