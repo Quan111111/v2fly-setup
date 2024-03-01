@@ -1,14 +1,14 @@
 #!/bin/bash
 
 # 封装更新和安装操作为一个函数
-update() {
+update_pkg() {
     sudo apt-get update && sudo apt-get upgrade -y
 }
 
 # 处理APT锁定问题的函数
 handle_apt_lock() {
     echo "APT is locked by another process. Attempting to fix..."
-    PID=$(ps aux | grep -i apt | grep -v grep | awk '{print \$2}' | head -n 1)
+    PID=$(ps aux | grep -i apt | grep -v grep | awk "{print \$2}" | head -n 1)
     if [ ! -z "$PID" ]; then
         echo "Killing the APT process with PID: $PID"
         sudo kill -9 $PID
@@ -23,13 +23,13 @@ handle_apt_lock() {
     sudo dpkg --configure -a
 
     echo "Retrying update and install..."
-    update_and_install_docker
+    update_pkg
 }
 
 # 尝试更新和安装，如果失败，则处理APT锁定问题
-if ! update_and_install_docker; then
+if ! update_pkg; then
     handle_apt_lock
-    update
+    update_pkg
 fi
 
 # 安装docker
