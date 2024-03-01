@@ -1,9 +1,8 @@
 #!/bin/bash
 
 # 封装更新和安装操作为一个函数
-update_and_install_docker() {
+update() {
     sudo apt-get update && sudo apt-get upgrade -y
-    sudo apt-get install docker.io -y
 }
 
 # 处理APT锁定问题的函数
@@ -30,6 +29,7 @@ handle_apt_lock() {
 # 尝试更新和安装，如果失败，则处理APT锁定问题
 if ! update_and_install_docker; then
     handle_apt_lock
+    update
 fi
 
 # 安装docker
