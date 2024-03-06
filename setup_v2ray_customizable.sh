@@ -1,8 +1,40 @@
 #!/bin/bash
 
-# 更新系统并安装 Docker
-sudo apt update && sudo apt upgrade -y
-sudo apt install docker.io -y
+# 封装更新和安装操作为一个函数
+update_pkg() {
+    sudo apt-get update && sudo apt-get upgrade -y
+}
+
+# 处理APT锁定问题的函数
+handle_apt_lock() {
+    echo "APT is locked by another process. Attempting to fix..."
+    
+    # 查找并强制结束所有apt-get和dpkg进程
+    sudo pkill -9 apt-get
+    sudo pkill -9 dpkg
+    
+    echo "Cleaning up lock files..."
+    # 尝试删除锁文件，但请小心使用
+    sudo rm -f /var/lib/dpkg/lock
+    sudo rm -f /var/lib/apt/lists/lock
+    sudo rm -f /var/cache/apt/archives/lock
+    sudo rm -f /var/lib/dpkg/lock-frontend
+
+    echo "Reconfiguring packages..."
+    sudo dpkg --configure -a
+
+    echo "Retrying update and install..."
+}
+
+# 尝试更新和安装，如果失败，则处理APT锁定问题
+if ! update_pkg; then
+    handle_apt_lock
+    update_pkg
+fi
+
+# 安装docker
+sudo apt-get install docker.io -y
+
 # 如果你想使用 snap 安装 Docker，可以取消下面两行的注释
 # sudo snap refresh snapd
 # sudo snap install docker
