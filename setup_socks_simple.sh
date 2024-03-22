@@ -220,7 +220,7 @@ for i in "${!IP_ADDRESSES[@]}"; do
     IP_ADDRESS=${IP_ADDRESSES[$i]}
     
     # 构建并写入分享信息
-    SOCKS_INFO="$IP_ADDRESS\t$PORT_NUM\t$USER\t$PASS\n"
+    SOCKS_INFO="$IP_ADDRESS\t$PORT_NUM\t$USER\t$PASS"
     echo -e "$SOCKS_INFO" >> "$SHARE_SOCKS_INFO_FILE"
 done
 
