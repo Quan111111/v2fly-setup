@@ -54,6 +54,7 @@ IP_ADDRESSES=($(ip addr show | grep "inet\b" | awk "{print \$2}" | cut -d/ -f1 |
 # 定义vmess出站的目标服务器信息
 VMESS_TARGET_PORT=12345
 VMESS_USER_ID="00000000-0000-0000-0000-000000000000"
+SOCKS_PORT=18200
 
 # 初始化配置文件的内容
 CONFIG_JSON="{\n    \"inbounds\": [\n"
@@ -104,7 +105,7 @@ ROUTE_TEMPLATE='            {
 # 为每个 IP 地址生成 inbounds 条目
 for i in "${!IP_ADDRESSES[@]}"; do
     TAG_NUM=$(printf "%02d" $((i + 1)))
-    PORT_NUM=$((18200 + i)) # 定义每个入站端口
+    PORT_NUM=$((${SOCKS_PORT} + i)) # 定义每个入站端口
     INBOUND_ENTRY=${INBOUND_TEMPLATE//IP_ADDRESS/${IP_ADDRESSES[$i]}}
     INBOUND_ENTRY=${INBOUND_ENTRY//TAG/$TAG_NUM}
     INBOUND_ENTRY=${INBOUND_ENTRY//PORT_NUM/$PORT_NUM}
@@ -213,7 +214,7 @@ echo "" > "$SHARE_SOCKS_INFO_FILE"  # 清空旧的分享链接文件内容
 # 生成并追加每个IP地址的V2Ray Socks分享信息到文件
 for i in "${!IP_ADDRESSES[@]}"; do
     TAG_NUM=$(printf "%02d" $((i + 1)))
-    PORT_NUM=$((18200 + i)) # 与Socks代理端口保持一致
+    PORT_NUM=$((${SOCKS_PORT} + i)) # 与Socks代理端口保持一致
     USER="user-$TAG_NUM"
     PASS="pass-$TAG_NUM"
     IP_ADDRESS=${IP_ADDRESSES[$i]}
@@ -235,7 +236,7 @@ echo "" > "$SHARE_SOCKS_BASE64_FILE"  # 清空旧的分享链接文件内容
 # 生成并追加每个IP地址的V2Ray Socks分享链接到文件
 for i in "${!IP_ADDRESSES[@]}"; do
     TAG_NUM=$(printf "%02d" $((i + 1)))
-    PORT_NUM=$((18200 + i)) # 假设端口号基于此规则生成
+    PORT_NUM=$((${SOCKS_PORT} + i)) # 假设端口号基于此规则生成
     USER="user-$TAG_NUM"
     PASS="pass-$TAG_NUM"
     IP_ADDRESS=${IP_ADDRESSES[$i]}
