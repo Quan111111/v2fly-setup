@@ -12,3 +12,9 @@ sudo apt-get update && sudo apt-get install -y curl && curl -o setup_v2ray_simpl
 sudo apt-get update && sudo apt-get install -y curl && curl -o setup_v2ray_customizable.sh https://raw.githubusercontent.com/Quan111111/v2fly-setup/main/setup_v2ray_customizable.sh && chmod +x setup_v2ray_customizable.sh && ./setup_v2ray_customizable.sh
 
 ```
+
+## 使用以下命令执行简单vmess前置socks脚本
+```
+sudo apt-get update && sudo apt-get install -y curl && curl -o setup_socks_simple.sh https://raw.githubusercontent.com/Quan111111/v2fly-setup/main/setup_socks_simple.sh && chmod +x setup_socks_simple.sh && ./setup_socks_simple.sh
+
+```
