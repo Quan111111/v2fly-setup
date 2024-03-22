@@ -163,46 +163,20 @@ echo -e "$CONFIG_JSON" >"$CONFIG_FILE"
 
 echo "Configuration file has been created at $CONFIG_FILE"
 
-#!/bin/bash
 
-# 定义全局变量
-SHARE_SOCKS_BASE64_FILE="/root/socks/share_socks_base64.txt"
+
+
+# 初始化V2Ray加密分享链接文件
 SHARE_V2RAY_BASE64_FILE="/root/socks/share_v2ray_base64.txt"
-SHARE_SOCKS_INFO_FILE="/root/socks/share_socks_info.txt"
+echo "" > "$SHARE_V2RAY_BASE64_FILE"  # 清空旧的分享链接文件内容
 
-initialize_file() {
-    local file_path="\$1"
-    echo "" > "$file_path"  # 清空旧的分享链接文件内容
-}
-
-generate_socks_base64_links() {
-    local file_path="\$1"
-    initialize_file "$file_path"
-    for i in "${!IP_ADDRESSES[@]}"; do
-        local TAG_NUM=$(printf "%02d" $((i + 1)))
-        local PORT_NUM=$((18200 + i))
-        local USER="user-$TAG_NUM"
-        local PASS="pass-$TAG_NUM"
-        local IP_ADDRESS=${IP_ADDRESSES[$i]}
-        local REMARK=$(("IP" + i))
-        
-        local UP_ENCODED=$(echo -n "${USER}:${PASS}" | base64)
-        local REMARK_ENCODED=$(echo -n "${REMARK}" | xxd -plain | tr -d '\n' | sed 's/\(..\)/%\1/g')
-        
-        local SOCKS_LINK="socks://${UP_ENCODED}@${IP_ADDRESS}:${PORT_NUM}#${REMARK_ENCODED}"
-        echo "$SOCKS_LINK" >> "$file_path"
-    done
-    echo "V2Ray Socks share links(base64 encode) have been saved to $file_path"
-}
-
-generate_vmess_base64_links() {
-    local file_path="\$1"
-    initialize_file "$file_path"
-    for i in "${!IP_ADDRESSES[@]}"; do
-        local TAG_NUM=$(printf "%02d" $((i + 1)))
-        local IP_ADDRESS=${IP_ADDRESSES[$i]}
-        
-        local VMESS_JSON=$(cat <<EOF_IN
+# 生成并追加每个IP地址的V2Ray分享链接到文件
+for i in "${!IP_ADDRESSES[@]}"; do
+    TAG_NUM=$(printf "%02d" $((i + 1)))
+    IP_ADDRESS=${IP_ADDRESSES[$i]}
+    
+    # 构造VMess链接的JSON部分
+    VMESS_JSON=$(cat <<EOF_IN
 {
   "v": "2",
   "ps": "vmess_${IP_ADDRESS}",
@@ -218,34 +192,69 @@ generate_vmess_base64_links() {
 }
 EOF_IN
 )
-        local BASE64_VMESS=$(echo -n "$VMESS_JSON" | base64 | tr -d '\n')
-        
-        local VMESS_LINK="vmess://${BASE64_VMESS}"
-        echo "$VMESS_LINK" >> "$file_path"
-    done
-    echo "V2Ray VMess share links(base64 encode) have been saved to $file_path"
-}
 
-generate_socks_info() {
-    local file_path="\$1"
-    initialize_file "$file_path"
-    for i in "${!IP_ADDRESSES[@]}"; do
-        local TAG_NUM=$(printf "%02d" $((i + 1)))
-        local PORT_NUM=$((18200 + i))
-        local USER="user-$TAG_NUM"
-        local PASS="pass-$TAG_NUM"
-        local IP_ADDRESS=${IP_ADDRESSES[$i]}
-        
-        local SOCKS_INFO="\nServer: $IP_ADDRESS\nPort: $PORT_NUM\nUser: $USER\nPass: $PASS\n"
-        echo -e "$SOCKS_INFO" >> "$file_path"
-    done
-    echo "Socks information has been saved to $file_path"
-}
+    # 使用Base64编码VMess JSON配置
+    BASE64_VMESS=$(echo -n "$VMESS_JSON" | base64 | tr -d '\n')
+    
+    # 构建并写入V2Ray VMess链接
+    VMESS_LINK="vmess://${BASE64_VMESS}"
+    echo "$VMESS_LINK" >> "$SHARE_V2RAY_BASE64_FILE"
+done
 
-# 调用函数
-generate_socks_base64_links "$SHARE_SOCKS_BASE64_FILE"
-generate_vmess_base64_links "$SHARE_V2RAY_BASE64_FILE"
-generate_socks_info "$SHARE_SOCKS_INFO_FILE"
+echo "V2Ray VMess share links(base64 encode) have been saved to $SHARE_V2RAY_BASE64_FILE"
+
+
+
+
+# 初始化V2Ray Socks信息文件
+SHARE_SOCKS_INFO_FILE="/root/socks/share_socks_info.txt"
+echo "" > "$SHARE_SOCKS_INFO_FILE"  # 清空旧的分享链接文件内容
+
+# 生成并追加每个IP地址的V2Ray Socks分享信息到文件
+for i in "${!IP_ADDRESSES[@]}"; do
+    TAG_NUM=$(printf "%02d" $((i + 1)))
+    PORT_NUM=$((18200 + i)) # 与Socks代理端口保持一致
+    USER="user-$TAG_NUM"
+    PASS="pass-$TAG_NUM"
+    IP_ADDRESS=${IP_ADDRESSES[$i]}
+    
+    # 构建并写入分享信息
+    SOCKS_INFO="$IP_ADDRESS\t$PORT_NUM\t$USER\t$PASS\n"
+    echo -e "$SOCKS_INFO" >> "$SHARE_SOCKS_INFO_FILE"
+done
+
+echo "V2Ray Socks share information has been saved to $SHARE_SOCKS_INFO_FILE"
+
+
+
+
+# 初始化V2Ray Socks加密分享链接文件
+SHARE_SOCKS_BASE64_FILE="/root/socks/share_socks_base64.txt"
+echo "" > "$SHARE_SOCKS_BASE64_FILE"  # 清空旧的分享链接文件内容
+
+# 生成并追加每个IP地址的V2Ray Socks分享链接到文件
+for i in "${!IP_ADDRESSES[@]}"; do
+    TAG_NUM=$(printf "%02d" $((i + 1)))
+    PORT_NUM=$((18200 + i)) # 假设端口号基于此规则生成
+    USER="user-$TAG_NUM"
+    PASS="pass-$TAG_NUM"
+    IP_ADDRESS=${IP_ADDRESSES[$i]}
+    REMARK="IP"+i # 备注信息
+
+    # 对用户名:密码进行Base64编码
+    UP_ENCODED=$(echo -n "${USER}:${PASS}" | base64)
+    
+    # 对备注进行URL编码
+    REMARK_ENCODED=$(echo -n "${REMARK}" | xxd -plain | tr -d '\n' | sed 's/\(..\)/%\1/g')
+    
+    # 构建并写入V2Ray Socks分享链接
+    SOCKS_LINK="socks://${UP_ENCODED}@${IP_ADDRESS}:${PORT_NUM}#${REMARK_ENCODED}"
+    echo "$SOCKS_LINK" >> "$SHARE_SOCKS_BASE64_FILE"
+done
+
+echo "V2Ray Socks share links(base64 encode) have been saved to $SHARE_SOCKS_BASE64_FILE"
+
+
 
 EOF
 
