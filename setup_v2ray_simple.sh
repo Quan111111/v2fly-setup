@@ -143,13 +143,13 @@ chmod +x ./create_v2ray_config.sh
 ./create_v2ray_config.sh
 
 # 停止并删除已存在的容器
-if [ $(docker ps -a -q -f name=test) ]; then
+if [ $(docker ps -a -q -f name=test_v) ]; then
     echo "Stopping and removing existing v2fly container..."
-    docker stop test
-    docker rm test
+    docker stop test_v
+    docker rm test_v
 fi
 
 # 使用 Docker 启动 V2Ray 服务
-docker run --network host -d --name test -v /root/v2ray/config.json:/etc/v2ray/config.json v2fly/v2fly-core run -c /etc/v2ray/config.json
+docker run --network host -d --name test_v -v /root/v2ray/config.json:/etc/v2ray/config.json v2fly/v2fly-core run -c /etc/v2ray/config.json
 
 echo "V2Ray Docker container has been started."
