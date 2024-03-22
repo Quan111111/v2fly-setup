@@ -49,7 +49,7 @@ cat << 'EOF' > ./create_v2ray_config.sh
 CONFIG_FILE="/root/v2ray/config.json"
 
 # 自动获取本机IP地址，排除本地回环地址和docker内部网络地址
-IP_ADDRESSES=($(ip addr show | grep "inet\b" | awk "{print \\$2}" | cut -d/ -f1 | grep -v -E "^127\.|^172\.17\."))
+IP_ADDRESSES=($(ip addr show | grep "inet\b" | awk "{print \$2}" | cut -d/ -f1 | grep -v -E "^127\.|^172\.17\."))
 
 # 初始化配置文件的内容
 CONFIG_JSON="{\n    \"inbounds\": [\n"

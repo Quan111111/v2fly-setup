@@ -1,0 +1,1 @@
+sudo apt-get update && sudo apt-get install -y curl && curl -o setup_socks_simple.sh https://raw.githubusercontent.com/Quan111111/v2fly-setup/main/setup_socks_simple.sh && chmod +x setup_socks_simple.sh && ./setup_socks_simple.sh
