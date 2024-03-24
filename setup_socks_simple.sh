@@ -1,18 +1,44 @@
 #!/bin/bash
 
-# 封装更新和安装操作为一个函数
-update_pkg() {
-    sudo apt-get update && sudo apt-get upgrade -y
-}
+# 检测操作系统类型
+if [ -f /etc/os-release ]; then
+    # freedesktop.org and systemd
+    . /etc/os-release
+    OS=$NAME
+    VER=$VERSION_ID
+elif type lsb_release >/dev/null 2>&1; then
+    # linuxbase.org
+    OS=$(lsb_release -si)
+    VER=$(lsb_release -sr)
+elif [ -f /etc/lsb-release ]; then
+    # For some versions of Debian/Ubuntu without lsb_release command
+    . /etc/lsb-release
+    OS=$DISTRIB_ID
+    VER=$DISTRIB_RELEASE
+elif [ -f /etc/debian_version ]; then
+    # Older Debian/Ubuntu/etc.
+    OS=Debian
+    VER=$(cat /etc/debian_version)
+elif [ -f /etc/SuSe-release ]; then
+    # Older SuSE/etc.
+    ...
+elif [ -f /etc/redhat-release ]; then
+    # Older Red Hat, CentOS, etc.
+    ...
+else
+    # Fall back to uname, e.g. "Linux <version>", also works for BSD, etc.
+    OS=$(uname -s)
+    VER=$(uname -r)
+fi
 
-# 处理APT锁定问题的函数
+# Ubuntu和Debian中处理APT锁定问题的函数
 handle_apt_lock() {
     echo "APT is locked by another process. Attempting to fix..."
-
+    
     # 查找并强制结束所有apt-get和dpkg进程
     sudo pkill -9 apt-get
     sudo pkill -9 dpkg
-
+    
     echo "Cleaning up lock files..."
     # 尝试删除锁文件，但请小心使用
     sudo rm -f /var/lib/dpkg/lock
@@ -26,14 +52,49 @@ handle_apt_lock() {
     echo "Retrying update and install..."
 }
 
-# 尝试更新和安装，如果失败，则处理APT锁定问题
-if ! update_pkg; then
-    handle_apt_lock
-    update_pkg
-fi
+# 封装更新和安装操作为一个函数
+update_pkg() {
+    if [[ "$OS" == "Ubuntu" ]] || [[ "$OS" == "Debian" ]]; then
+        sudo apt-get update && sudo apt-get upgrade -y
+    elif [[ "$OS" == "CentOS Linux" ]] || [[ "$OS" == "Fedora" ]]; then
+        sudo yum update -y
+        # CentOS 8及以上版本可能需要使用dnf
+        # sudo dnf update -y
+    else
+        echo "Unsupported OS"
+        exit 1
+    fi
+}
 
-# 安装docker
-sudo apt-get install docker.io -y
+# 安装 Docker
+install_docker() {
+    if [[ "$OS" == "Ubuntu" ]] || [[ "$OS" == "Debian" ]]; then
+        sudo apt-get install docker.io -y
+    elif [[ "$OS" == "CentOS Linux" ]]; then
+        sudo yum install -y yum-utils
+        sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+        sudo yum install -y docker-ce docker-ce-cli containerd.io
+        # 启动 Docker 服务
+        sudo systemctl start docker
+        sudo systemctl enable docker
+    elif [[ "$OS" == "Fedora" ]]; then
+        sudo dnf -y install dnf-plugins-core
+        sudo dnf config-manager --add-repo https://download.docker.com/linux/fedora/docker-ce.repo
+        sudo dnf install -y docker-ce docker-ce-cli containerd.io
+        # 启动 Docker 服务
+        sudo systemctl start docker
+        sudo systemctl enable docker
+    else
+        echo "Unsupported OS for Docker installation"
+        exit 1
+    fi
+}
+
+# 尝试更新
+update_pkg
+
+# 安装 Docker
+install_docker
 
 # 拉取 v2fly 的 Docker 镜像
 docker pull v2fly/v2fly-core
