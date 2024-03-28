@@ -170,8 +170,8 @@ for i in "${!IP_ADDRESSES[@]}"; do
     fi
 done
 
-# 添加 routing 部分的开始
-CONFIG_JSON+="\n    ],\n    \"routing\": {\n        \"rules\": [\n"
+# 添加 routing 部分的开始，包括 domainStrategy 的配置
+CONFIG_JSON+="\n    ],\n    \"routing\": {\n        \"domainStrategy\": \"IPOnDemand\",\n        \"rules\": [\n"
 
 # 为每个 IP 地址添加 routing 条目
 for i in "${!IP_ADDRESSES[@]}"; do
