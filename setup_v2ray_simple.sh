@@ -184,8 +184,12 @@ for i in "${!IP_ADDRESSES[@]}"; do
     fi
 done
 
+# 完成 routing 配置并添加 dns 配置项
+CONFIG_JSON+="\n        ]\n    },\n    \"dns\": {\n        \"servers\": [\n            \"8.8.8.8\",\n            \"1.1.1.1\"\n        ]\n    }\n}"
+
 # 完成配置文件的内容
-CONFIG_JSON+="\n        ]\n    }\n}"
+CONFIG_JSON+="\n}"
+
 
 # 确保 v2ray 目录存在
 mkdir -p $(dirname "$CONFIG_FILE")
