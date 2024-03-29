@@ -301,7 +301,7 @@ for i in "${!IP_ADDRESSES[@]}"; do
     USER="user-$TAG_NUM"
     PASS="pass-$TAG_NUM"
     IP_ADDRESS=${IP_ADDRESSES[$i]}
-    REMARK=("IP"+i) # 备注信息
+    REMARK=$(("IP"+i)) # 备注信息
 
     # 对用户名:密码进行Base64编码
     UP_ENCODED=$(echo -n "${USER}:${PASS}" | base64)
