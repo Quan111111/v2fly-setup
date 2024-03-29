@@ -2,66 +2,66 @@
 
 # 检测操作系统类型
 if [ -f /etc/os-release ]; then
-    # freedesktop.org and systemd
+    # 使用 freedesktop.org 和 systemd 的方式
     . /etc/os-release
     OS=$NAME
     VER=$VERSION_ID
 elif type lsb_release >/dev/null 2>&1; then
-    # linuxbase.org
+    # 使用 linuxbase.org 的方式
     OS=$(lsb_release -si)
     VER=$(lsb_release -sr)
 elif [ -f /etc/lsb-release ]; then
-    # For some versions of Debian/Ubuntu without lsb_release command
+    # 用于一些没有 lsb_release 命令的 Debian/Ubuntu 版本
     . /etc/lsb-release
     OS=$DISTRIB_ID
     VER=$DISTRIB_RELEASE
 elif [ -f /etc/debian_version ]; then
-    # Older Debian/Ubuntu/etc.
+    # 旧版 Debian/Ubuntu 等
     OS=Debian
     VER=$(cat /etc/debian_version)
 elif [ -f /etc/SuSe-release ]; then
-    # Older SuSE/etc.
+    # 旧版 SuSE 等
     ...
 elif [ -f /etc/redhat-release ]; then
-    # Older Red Hat, CentOS, etc.
+    # 旧版 Red Hat, CentOS 等
     ...
 else
-    # Fall back to uname, e.g. "Linux <version>", also works for BSD, etc.
+    # 使用 uname 作为后备，比如 "Linux <版本>"，也适用于 BSD 等
     OS=$(uname -s)
     VER=$(uname -r)
 fi
 
-# Ubuntu和Debian中处理APT锁定问题的函数
+# 处理 Ubuntu 和 Debian 中 APT 锁定问题的函数
 handle_apt_lock() {
-    echo "APT is locked by another process. Attempting to fix..."
+    echo "APT 被另一个进程锁定。尝试修复中..."
     
-    # 查找并强制结束所有apt-get和dpkg进程
+    # 查找并强制结束所有 apt-get 和 dpkg 进程
     sudo pkill -9 apt-get
     sudo pkill -9 dpkg
     
-    echo "Cleaning up lock files..."
+    echo "清理锁文件中..."
     # 尝试删除锁文件，但请小心使用
     sudo rm -f /var/lib/dpkg/lock
     sudo rm -f /var/lib/apt/lists/lock
     sudo rm -f /var/cache/apt/archives/lock
     sudo rm -f /var/lib/dpkg/lock-frontend
 
-    echo "Reconfiguring packages..."
+    echo "重新配置软件包中..."
     sudo dpkg --configure -a
 
-    echo "Retrying update and install..."
+    echo "重试更新和安装操作中..."
 }
 
-# 封装更新和安装操作为一个函数
+# 将更新和安装操作封装为一个函数
 update_pkg() {
     if [[ "$OS" == "Ubuntu" ]] || [[ "$OS" == "Debian" ]]; then
         sudo apt-get update && sudo apt-get upgrade -y
     elif [[ "$OS" == "CentOS Linux" ]] || [[ "$OS" == "Fedora" ]]; then
         sudo yum update -y
-        # CentOS 8及以上版本可能需要使用dnf
+        # CentOS 8 及以上版本可能需要使用 dnf
         # sudo dnf update -y
     else
-        echo "Unsupported OS"
+        echo "不支持的操作系统"
         exit 1
     fi
 }
@@ -85,7 +85,7 @@ install_docker() {
         sudo systemctl start docker
         sudo systemctl enable docker
     else
-        echo "Unsupported OS for Docker installation"
+        echo "不支持安装 Docker 的操作系统"
         exit 1
     fi
 }
@@ -102,22 +102,22 @@ docker pull v2fly/v2fly-core
 # 创建配置文件目录
 mkdir -p /root/socks/
 
-# 创建 create_socks_config.sh 脚本
+# 创建配置文件脚本
 cat <<'EOF' >./create_socks_config.sh
 #!/bin/bash
 
-# 定义配置文件的路径
+# 用户定义的配置文件路径
 CONFIG_FILE="/root/socks/config_s.json"
 
-# 自动获取本机IP地址，排除本地回环地址和docker内部网络地址
+# 自动获取本机 IP 地址，排除本地回环地址和 docker 内部网络地址
 IP_ADDRESSES=($(ip addr show | grep "inet\b" | awk "{print \$2}" | cut -d/ -f1 | grep -v -E "^127\.|^172\.17\."))
 
-# 定义vmess出站的目标服务器信息
+# 定义 vmess 出站的目标服务器信息
 VMESS_TARGET_PORT=12345
 VMESS_USER_ID="00000000-0000-0000-0000-000000000000"
 SOCKS_PORT=18200
 
-# 初始化配置文件的内容
+# 初始化配置文件内容
 CONFIG_JSON="{\n    \"inbounds\": [\n"
 INBOUND_TEMPLATE='        {
             "tag": "socks-in-TAG",
@@ -163,7 +163,7 @@ ROUTE_TEMPLATE='            {
                 "outboundTag": "vmess-out-TAG"
             }'
 
-# 为每个 IP 地址生成 inbounds 条目
+# 为每个 IP 地址生成入站条目
 for i in "${!IP_ADDRESSES[@]}"; do
     TAG_NUM=$(printf "%02d" $((i + 1)))
     PORT_NUM=$((${SOCKS_PORT} + i)) # 定义每个入站端口
@@ -180,15 +180,15 @@ for i in "${!IP_ADDRESSES[@]}"; do
     fi
 done
 
-# 添加 outbounds 部分的开始
+# 添加出站部分的开始
 CONFIG_JSON+="\n    ],\n    \"outbounds\": [\n"
 
-# 为每个 IP 地址生成 outbounds 条目
+# 为每个 IP 地址生成出站条目
 for i in "${!IP_ADDRESSES[@]}"; do
     TAG_NUM=$(printf "%02d" $((i + 1)))
     OUTBOUND_ENTRY=${OUTBOUND_TEMPLATE//IP_ADDRESS/${IP_ADDRESSES[$i]}}
     OUTBOUND_ENTRY=${OUTBOUND_ENTRY//TAG/$TAG_NUM}
-    OUTBOUND_ENTRY=${OUTBOUND_ENTRY//VMESS_TARGET_ADDRESS/${IP_ADDRESSES[$i]}} # 使用相同的IP作为目标地址
+    OUTBOUND_ENTRY=${OUTBOUND_ENTRY//VMESS_TARGET_ADDRESS/${IP_ADDRESSES[$i]}} # 使用相同的 IP 作为目标地址
     OUTBOUND_ENTRY=${OUTBOUND_ENTRY//VMESS_TARGET_PORT/$VMESS_TARGET_PORT}
     OUTBOUND_ENTRY=${OUTBOUND_ENTRY//VMESS_USER_ID/$VMESS_USER_ID}
 
@@ -199,10 +199,10 @@ for i in "${!IP_ADDRESSES[@]}"; do
     fi
 done
 
-# 添加 routing 部分的开始
+# 添加路由部分的开始
 CONFIG_JSON+="\n    ],\n    \"routing\": {\n        \"rules\": [\n"
 
-# 为每个 IP 地址添加 routing 条目
+# 为每个 IP 地址添加路由条目
 for i in "${!IP_ADDRESSES[@]}"; do
     TAG_NUM=$(printf "%02d" $((i + 1)))
     ROUTE_ENTRY=${ROUTE_TEMPLATE//TAG/$TAG_NUM}
@@ -223,50 +223,7 @@ mkdir -p $(dirname "$CONFIG_FILE")
 # 将新的配置写入文件
 echo -e "$CONFIG_JSON" >"$CONFIG_FILE"
 
-echo "Configuration file has been created at $CONFIG_FILE"
-
-
-
-
-# 初始化V2Ray加密分享链接文件
-SHARE_V2RAY_BASE64_FILE="/root/socks/share_v2ray_base64.txt"
-echo "" > "$SHARE_V2RAY_BASE64_FILE"  # 清空旧的分享链接文件内容
-
-# 生成并追加每个IP地址的V2Ray分享链接到文件
-for i in "${!IP_ADDRESSES[@]}"; do
-    TAG_NUM=$(printf "%02d" $((i + 1)))
-    IP_ADDRESS=${IP_ADDRESSES[$i]}
-    
-    # 构造VMess链接的JSON部分
-    VMESS_JSON=$(cat <<EOF_IN
-{
-  "v": "2",
-  "ps": "vmess_${IP_ADDRESS}",
-  "add": "${IP_ADDRESS}",
-  "port": "${VMESS_TARGET_PORT}",
-  "id": "${VMESS_USER_ID}",
-  "aid": "0",
-  "net": "tcp",
-  "type": "none",
-  "host": "",
-  "path": "",
-  "tls": ""
-}
-EOF_IN
-)
-
-    # 使用Base64编码VMess JSON配置
-    BASE64_VMESS=$(echo -n "$VMESS_JSON" | base64 | tr -d '\n')
-    
-    # 构建并写入V2Ray VMess链接
-    VMESS_LINK="vmess://${BASE64_VMESS}"
-    echo "$VMESS_LINK" >> "$SHARE_V2RAY_BASE64_FILE"
-done
-
-echo "V2Ray VMess share links(base64 encode) have been saved to $SHARE_V2RAY_BASE64_FILE"
-
-
-
+echo "配置文件已创建在 $CONFIG_FILE"
 
 # 初始化V2Ray Socks信息文件
 SHARE_SOCKS_INFO_FILE="/root/socks/share_socks_info.txt"
@@ -285,16 +242,14 @@ for i in "${!IP_ADDRESSES[@]}"; do
     echo -e "$SOCKS_INFO" >> "$SHARE_SOCKS_INFO_FILE"
 done
 
-echo "V2Ray Socks share information has been saved to $SHARE_SOCKS_INFO_FILE"
+echo "V2Ray Socks 信息已保存到 $SHARE_SOCKS_INFO_FILE"
 
 
-
-
-# 初始化V2Ray Socks加密分享链接文件
+# 初始化 V2Ray Socks 加密分享链接文件
 SHARE_SOCKS_BASE64_FILE="/root/socks/share_socks_base64.txt"
 echo "" > "$SHARE_SOCKS_BASE64_FILE"  # 清空旧的分享链接文件内容
 
-# 生成并追加每个IP地址的V2Ray Socks分享链接到文件
+# 生成并追加每个 IP 地址的 V2Ray Socks 分享链接到文件
 for i in "${!IP_ADDRESSES[@]}"; do
     TAG_NUM=$(printf "%02d" $((i + 1)))
     PORT_NUM=$((${SOCKS_PORT} + i)) # 假设端口号基于此规则生成
@@ -303,19 +258,18 @@ for i in "${!IP_ADDRESSES[@]}"; do
     IP_ADDRESS=${IP_ADDRESSES[$i]}
     REMARK=$(("IP"+i)) # 备注信息
 
-    # 对用户名:密码进行Base64编码
+    # 对用户名:密码进行 Base64 编码
     UP_ENCODED=$(echo -n "${USER}:${PASS}" | base64)
     
-    # 对备注进行URL编码
+    # 对备注进行 URL 编码
     REMARK_ENCODED=$(echo -n "${REMARK}" | xxd -plain | tr -d '\n' | sed 's/\(..\)/%\1/g')
     
-    # 构建并写入V2Ray Socks分享链接
+    # 构建并写入 V2Ray Socks 分享链接
     SOCKS_LINK="socks://${UP_ENCODED}@${IP_ADDRESS}:${PORT_NUM}#${REMARK_ENCODED}"
     echo "$SOCKS_LINK" >> "$SHARE_SOCKS_BASE64_FILE"
 done
 
-echo "V2Ray Socks share links(base64 encode) have been saved to $SHARE_SOCKS_BASE64_FILE"
-
+echo "V2Ray Socks 分享链接（Base64 编码）已保存到 $SHARE_SOCKS_BASE64_FILE"
 
 
 EOF
@@ -328,7 +282,7 @@ chmod +x ./create_socks_config.sh
 
 # 停止并删除已存在的容器
 if [ $(docker ps -a -q -f name=test_s) ]; then
-    echo "Stopping and removing existing 'test_s' v2fly container..."
+    echo "停止并删除现有的 'test_s' v2fly 容器中..."
     docker stop test_s
     docker rm test_s
 fi
@@ -336,7 +290,7 @@ fi
 # 使用 Docker 启动 socks 服务
 docker run --network host -d --name test_s -v /root/socks/config_s.json:/etc/socks/config_s.json v2fly/v2fly-core run -c /etc/socks/config_s.json
 
-echo "socks Docker container has been started."
+echo "socks Docker 容器已启动。"
 
 # 添加脚本到开机启动
 add_to_startup() {
