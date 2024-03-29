@@ -218,3 +218,17 @@ fi
 docker run --network host -d --name test_v -v /root/v2ray/config.json:/etc/v2ray/config.json v2fly/v2fly-core run -c /etc/v2ray/config.json
 
 echo "V2Ray Docker container has been started."
+
+# 添加脚本到开机启动
+add_to_startup() {
+    local script_path="$1"
+    # 使用 crontab 将脚本添加到开机启动
+    (crontab -l ; echo "@reboot /bin/bash $script_path") | crontab -
+    echo "脚本 $script_path 已添加到开机启动"
+}
+
+# 脚本路径
+script1="/root/setup_v2ray_simple.sh"
+
+# 添加脚本到开机启动
+add_to_startup "$script1"
