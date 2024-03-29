@@ -202,7 +202,6 @@ echo "Configuration file has been created at $CONFIG_FILE"
 # 定义vmess出站的目标服务器信息
 VMESS_TARGET_PORT=12345
 VMESS_USER_ID="00000000-0000-0000-0000-000000000000"
-SOCKS_PORT=18200
 
 # 初始化V2Ray加密分享链接文件
 SHARE_V2RAY_BASE64_FILE="/root/v2ray/share_v2ray_base64.txt"

@@ -1,11 +1,35 @@
-#!/bin/bash
+# 检测操作系统类型
+if [ -f /etc/os-release ]; then
+    # freedesktop.org and systemd
+    . /etc/os-release
+    OS=$NAME
+    VER=$VERSION_ID
+elif type lsb_release >/dev/null 2>&1; then
+    # linuxbase.org
+    OS=$(lsb_release -si)
+    VER=$(lsb_release -sr)
+elif [ -f /etc/lsb-release ]; then
+    # For some versions of Debian/Ubuntu without lsb_release command
+    . /etc/lsb-release
+    OS=$DISTRIB_ID
+    VER=$DISTRIB_RELEASE
+elif [ -f /etc/debian_version ]; then
+    # Older Debian/Ubuntu/etc.
+    OS=Debian
+    VER=$(cat /etc/debian_version)
+elif [ -f /etc/SuSe-release ]; then
+    # Older SuSE/etc.
+    ...
+elif [ -f /etc/redhat-release ]; then
+    # Older Red Hat, CentOS, etc.
+    ...
+else
+    # Fall back to uname, e.g. "Linux <version>", also works for BSD, etc.
+    OS=$(uname -s)
+    VER=$(uname -r)
+fi
 
-# 封装更新和安装操作为一个函数
-update_pkg() {
-    sudo apt-get update && sudo apt-get upgrade -y
-}
-
-# 处理APT锁定问题的函数
+# Ubuntu和Debian中处理APT锁定问题的函数
 handle_apt_lock() {
     echo "APT is locked by another process. Attempting to fix..."
     
@@ -26,18 +50,49 @@ handle_apt_lock() {
     echo "Retrying update and install..."
 }
 
-# 尝试更新和安装，如果失败，则处理APT锁定问题
-if ! update_pkg; then
-    handle_apt_lock
-    update_pkg
-fi
+# 封装更新和安装操作为一个函数
+update_pkg() {
+    if [[ "$OS" == "Ubuntu" ]] || [[ "$OS" == "Debian" ]]; then
+        sudo apt-get update && sudo apt-get upgrade -y
+    elif [[ "$OS" == "CentOS Linux" ]] || [[ "$OS" == "Fedora" ]]; then
+        sudo yum update -y
+        # CentOS 8及以上版本可能需要使用dnf
+        # sudo dnf update -y
+    else
+        echo "Unsupported OS"
+        exit 1
+    fi
+}
 
-# 安装docker
-sudo apt-get install docker.io -y
+# 安装 Docker
+install_docker() {
+    if [[ "$OS" == "Ubuntu" ]] || [[ "$OS" == "Debian" ]]; then
+        sudo apt-get install docker.io -y
+    elif [[ "$OS" == "CentOS Linux" ]]; then
+        sudo yum install -y yum-utils
+        sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+        sudo yum install -y docker-ce docker-ce-cli containerd.io
+        # 启动 Docker 服务
+        sudo systemctl start docker
+        sudo systemctl enable docker
+    elif [[ "$OS" == "Fedora" ]]; then
+        sudo dnf -y install dnf-plugins-core
+        sudo dnf config-manager --add-repo https://download.docker.com/linux/fedora/docker-ce.repo
+        sudo dnf install -y docker-ce docker-ce-cli containerd.io
+        # 启动 Docker 服务
+        sudo systemctl start docker
+        sudo systemctl enable docker
+    else
+        echo "Unsupported OS for Docker installation"
+        exit 1
+    fi
+}
 
-# 如果你想使用 snap 安装 Docker，可以取消下面两行的注释
-# sudo snap refresh snapd
-# sudo snap install docker
+# 尝试更新
+update_pkg
+
+# 安装 Docker
+install_docker
 
 # 拉取 v2fly 的 Docker 镜像
 docker pull v2fly/v2fly-core
@@ -192,6 +247,57 @@ CONFIG_JSON+="\n        ]\n    }\n}"
 echo -e "$CONFIG_JSON" > "$CONFIG_FILE"
 
 echo "Configuration file has been created at $CONFIG_FILE"
+
+# 定义vmess出站的目标服务器信息
+VMESS_TARGET_PORT=${PORT}
+VMESS_USER_ID=${ID}
+VMESS_ENCRYPTION=${ENCRYPTION}
+# 根据加密方式选择，初始化变量
+VMESS_PATH="/"
+VMESS_HOST=""
+
+# 如果选择了ws加密方式，进一步获取path和host的配置
+if [ "$ENCRYPTION" == "ws" ]; then
+    VMESS_PATH=${V2RAY_PATH}
+    VMESS_HOST=${HOST}
+fi
+
+# 初始化V2Ray加密分享链接文件
+SHARE_V2RAY_BASE64_FILE="/root/v2ray/share_v2ray_base64.txt"
+echo "" > "$SHARE_V2RAY_BASE64_FILE"  # 清空旧的分享链接文件内容
+
+# 生成并追加每个IP地址的V2Ray分享链接到文件
+for i in "${!IP_ADDRESSES[@]}"; do
+    TAG_NUM=$(printf "%02d" $((i + 1)))
+    IP_ADDRESS=${IP_ADDRESSES[$i]}
+    
+    # 构造VMess链接的JSON部分
+    VMESS_JSON=$(cat <<EOF_IN
+{
+  "v": "2",
+  "ps": "vmess_${IP_ADDRESS}",
+  "add": "${IP_ADDRESS}",
+  "port": "${VMESS_TARGET_PORT}",
+  "id": "${VMESS_USER_ID}",
+  "aid": "0",
+  "net": "${VMESS_ENCRYPTION}",
+  "type": "none",
+  "host": "${VMESS_HOST}",
+  "path": "${VMESS_PATH}",
+  "tls": ""
+}
+EOF_IN
+)
+
+    # 使用Base64编码VMess JSON配置
+    BASE64_VMESS=$(echo -n "$VMESS_JSON" | base64 | tr -d '\n')
+    
+    # 构建并写入V2Ray VMess链接
+    VMESS_LINK="vmess://${BASE64_VMESS}"
+    echo "$VMESS_LINK" >> "$SHARE_V2RAY_BASE64_FILE"
+done
+
+echo "V2Ray VMess share links(base64 encode) have been saved to $SHARE_V2RAY_BASE64_FILE"
 
 EOF
 
