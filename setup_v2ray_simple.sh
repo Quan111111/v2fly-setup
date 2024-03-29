@@ -199,6 +199,48 @@ echo -e "$CONFIG_JSON" > "$CONFIG_FILE"
 
 echo "Configuration file has been created at $CONFIG_FILE"
 
+# 定义vmess出站的目标服务器信息
+VMESS_TARGET_PORT=12345
+VMESS_USER_ID="00000000-0000-0000-0000-000000000000"
+SOCKS_PORT=18200
+
+# 初始化V2Ray加密分享链接文件
+SHARE_V2RAY_BASE64_FILE="/root/v2ray/share_v2ray_base64.txt"
+echo "" > "$SHARE_V2RAY_BASE64_FILE"  # 清空旧的分享链接文件内容
+
+# 生成并追加每个IP地址的V2Ray分享链接到文件
+for i in "${!IP_ADDRESSES[@]}"; do
+    TAG_NUM=$(printf "%02d" $((i + 1)))
+    IP_ADDRESS=${IP_ADDRESSES[$i]}
+    
+    # 构造VMess链接的JSON部分
+    VMESS_JSON=$(cat <<EOF_IN
+{
+  "v": "2",
+  "ps": "vmess_${IP_ADDRESS}",
+  "add": "${IP_ADDRESS}",
+  "port": "${VMESS_TARGET_PORT}",
+  "id": "${VMESS_USER_ID}",
+  "aid": "0",
+  "net": "tcp",
+  "type": "none",
+  "host": "",
+  "path": "",
+  "tls": ""
+}
+EOF_IN
+)
+
+    # 使用Base64编码VMess JSON配置
+    BASE64_VMESS=$(echo -n "$VMESS_JSON" | base64 | tr -d '\n')
+    
+    # 构建并写入V2Ray VMess链接
+    VMESS_LINK="vmess://${BASE64_VMESS}"
+    echo "$VMESS_LINK" >> "$SHARE_V2RAY_BASE64_FILE"
+done
+
+echo "V2Ray VMess share links(base64 encode) have been saved to $SHARE_V2RAY_BASE64_FILE"
+
 EOF
 
 # 添加执行权限
