@@ -2,7 +2,7 @@
 
 # 检测操作系统类型
 if [ -f /etc/os-release ]; then
-    # freedesktop.org and systemd
+    # freedesktop.org 和 systemd
     . /etc/os-release
     OS=$NAME
     VER=$VERSION_ID
@@ -11,45 +11,45 @@ elif type lsb_release >/dev/null 2>&1; then
     OS=$(lsb_release -si)
     VER=$(lsb_release -sr)
 elif [ -f /etc/lsb-release ]; then
-    # For some versions of Debian/Ubuntu without lsb_release command
+    # 一些没有 lsb_release 命令的 Debian/Ubuntu 版本
     . /etc/lsb-release
     OS=$DISTRIB_ID
     VER=$DISTRIB_RELEASE
 elif [ -f /etc/debian_version ]; then
-    # Older Debian/Ubuntu/etc.
+    # 旧的 Debian/Ubuntu 等版本
     OS=Debian
     VER=$(cat /etc/debian_version)
 elif [ -f /etc/SuSe-release ]; then
-    # Older SuSE/etc.
+    # 旧的 SuSE 等版本
     ...
 elif [ -f /etc/redhat-release ]; then
-    # Older Red Hat, CentOS, etc.
+    # 旧的 Red Hat、CentOS 等版本
     ...
 else
-    # Fall back to uname, e.g. "Linux <version>", also works for BSD, etc.
+    # 回退到 uname，例如 "Linux <version>"，也适用于 BSD 等
     OS=$(uname -s)
     VER=$(uname -r)
 fi
 
-# Ubuntu和Debian中处理APT锁定问题的函数
+# 处理APT锁定问题的函数
 handle_apt_lock() {
-    echo "APT is locked by another process. Attempting to fix..."
-    
-    # 查找并强制结束所有apt-get和dpkg进程
+    echo "APT 被其他进程锁定。正在尝试修复..."
+
+    # 查找并强制结束所有 apt-get 和 dpkg 进程
     sudo pkill -9 apt-get
     sudo pkill -9 dpkg
-    
-    echo "Cleaning up lock files..."
+
+    echo "清理锁文件..."
     # 尝试删除锁文件，但请小心使用
     sudo rm -f /var/lib/dpkg/lock
     sudo rm -f /var/lib/apt/lists/lock
     sudo rm -f /var/cache/apt/archives/lock
     sudo rm -f /var/lib/dpkg/lock-frontend
 
-    echo "Reconfiguring packages..."
+    echo "重新配置软件包..."
     sudo dpkg --configure -a
 
-    echo "Retrying update and install..."
+    echo "重试更新和安装..."
 }
 
 # 封装更新和安装操作为一个函数
@@ -58,10 +58,10 @@ update_pkg() {
         sudo apt-get update && sudo apt-get upgrade -y
     elif [[ "$OS" == "CentOS Linux" ]] || [[ "$OS" == "Fedora" ]]; then
         sudo yum update -y
-        # CentOS 8及以上版本可能需要使用dnf
+        # CentOS 8 及以上版本可能需要使用 dnf
         # sudo dnf update -y
     else
-        echo "Unsupported OS"
+        echo "不支持的操作系统"
         exit 1
     fi
 }
@@ -85,7 +85,7 @@ install_docker() {
         sudo systemctl start docker
         sudo systemctl enable docker
     else
-        echo "Unsupported OS for Docker installation"
+        echo "不支持的操作系统安装 Docker"
         exit 1
     fi
 }
@@ -190,14 +190,13 @@ CONFIG_JSON+="\n        ]\n    },\n    \"dns\": {\n        \"servers\": [\n     
 # 完成配置文件的内容
 CONFIG_JSON+="\n}"
 
-
 # 确保 v2ray 目录存在
 mkdir -p $(dirname "$CONFIG_FILE")
 
 # 将新的配置写入文件
 echo -e "$CONFIG_JSON" > "$CONFIG_FILE"
 
-echo "Configuration file has been created at $CONFIG_FILE"
+echo "配置文件已创建在 $CONFIG_FILE"
 
 # 定义vmess出站的目标服务器信息
 VMESS_TARGET_PORT=12345
@@ -238,7 +237,7 @@ EOF_IN
     echo "$VMESS_LINK" >> "$SHARE_V2RAY_BASE64_FILE"
 done
 
-echo "V2Ray VMess share links(base64 encode) have been saved to $SHARE_V2RAY_BASE64_FILE"
+echo "V2Ray VMess 分享链接（base64 编码）已保存至 $SHARE_V2RAY_BASE64_FILE"
 
 EOF
 
@@ -250,7 +249,7 @@ chmod +x ./create_v2ray_config.sh
 
 # 停止并删除已存在的容器
 if [ $(docker ps -a -q -f name=test_v) ]; then
-    echo "Stopping and removing existing v2fly container..."
+    echo "停止并删除现有的 v2fly 容器..."
     docker stop test_v
     docker rm test_v
 fi
@@ -258,7 +257,7 @@ fi
 # 使用 Docker 启动 V2Ray 服务
 docker run --network host -d --name test_v -v /root/v2ray/config.json:/etc/v2ray/config.json v2fly/v2fly-core run -c /etc/v2ray/config.json
 
-echo "V2Ray Docker container has been started."
+echo "V2Ray Docker 容器已启动."
 
 # 添加脚本到开机启动
 add_to_startup() {
