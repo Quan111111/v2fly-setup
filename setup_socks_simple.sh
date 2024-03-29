@@ -295,9 +295,17 @@ echo "socks Docker 容器已启动。"
 # 添加脚本到开机启动
 add_to_startup() {
     local script_path="$1"
-    # 使用 crontab 将脚本添加到开机启动
-    (crontab -l ; echo "@reboot /bin/bash $script_path") | crontab -
-    echo "脚本 $script_path 已添加到开机启动"
+    # 在脚本路径前加上 sleep 60 && 来实现开机后延时60秒执行
+    local cron_entry="@reboot sleep 60 && /bin/bash $script_path"
+
+    # 检查 crontab 是否已经包含了这一行
+    if crontab -l | grep -Fq "/bin/bash $script_path"; then
+        echo "脚本 $script_path 已经在开机启动中了，不会重复添加。"
+    else
+        # 使用 crontab 将脚本添加到开机启动
+        (crontab -l 2>/dev/null; echo "$cron_entry") | crontab -
+        echo "脚本 $script_path 已添加到开机启动，将在启动后60秒执行。"
+    fi
 }
 
 # 脚本路径
