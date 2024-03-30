@@ -249,14 +249,13 @@ echo "V2Ray Socks 信息已保存到 $SHARE_SOCKS_INFO_FILE"
 SHARE_SOCKS_BASE64_FILE="/root/socks/share_socks_base64.txt"
 echo "" > "$SHARE_SOCKS_BASE64_FILE"  # 清空旧的分享链接文件内容
 
-# 生成并追加每个 IP 地址的 V2Ray Socks 分享链接到文件
 for i in "${!IP_ADDRESSES[@]}"; do
     TAG_NUM=$(printf "%02d" $((i + 1)))
     PORT_NUM=$((${SOCKS_PORT} + i)) # 假设端口号基于此规则生成
     USER="user-$TAG_NUM"
     PASS="pass-$TAG_NUM"
     IP_ADDRESS=${IP_ADDRESSES[$i]}
-    REMARK=$(("IP"+i)) # 备注信息
+    REMARK="IP$i" # 备注信息
 
     # 对用户名:密码进行 Base64 编码
     UP_ENCODED=$(echo -n "${USER}:${PASS}" | base64)
@@ -268,6 +267,7 @@ for i in "${!IP_ADDRESSES[@]}"; do
     SOCKS_LINK="socks://${UP_ENCODED}@${IP_ADDRESS}:${PORT_NUM}#${REMARK_ENCODED}"
     echo "$SOCKS_LINK" >> "$SHARE_SOCKS_BASE64_FILE"
 done
+
 
 echo "V2Ray Socks 分享链接（Base64 编码）已保存到 $SHARE_SOCKS_BASE64_FILE"
 
