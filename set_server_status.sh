@@ -26,7 +26,7 @@ read -p "输入本机名称：" name
 name=${name:-"默认机器名称"}
 
 read -p "输入注册组：" group
-group=${group:-"hostease1"}
+group=${group:-"hostease"}
 
 read -p "输入密码：" password
 password=${password:-"pppp"}
