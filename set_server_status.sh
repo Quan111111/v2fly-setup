@@ -25,4 +25,4 @@ rm "client-${ARCHITECTURE}-unknown-linux-musl.zip"
 read -p "输入本机名称：" name
 name=${name:-"默认机器名称"}
 
-/root/server_status_rust/status_client/stat_client -a "http://status.quan.zone:18888/report" -g hostease1 -p pppp -alias ${name}
+/root/server_status_rust/status_client/stat_client -a "http://192.243.125.54:18888/report" -g hostease1 -p pppp --alias ${name}
