@@ -25,4 +25,12 @@ rm "client-${ARCHITECTURE}-unknown-linux-musl.zip"
 read -p "输入本机名称：" name
 name=${name:-"默认机器名称"}
 
-/root/server_status_rust/status_client/stat_client -a "http://status.quan.zone:18888/report" -g hostease1 -p pppp
+read -p "输入注册组：" group
+group=${group:-"hostease1"}
+
+read -p "输入密码：" password
+password=${password:-"pppp"}
+
+# /root/server_status_rust/status_client/stat_client -a "http://status.quan.zone:18888/report" --gid ${group} -p ${password} --alias ${name}
+
+nohup /root/server_status_rust/status_client/stat_client -a "http://status.quan.zone:18888/report" --gid ${group} -p ${password} --alias ${name} > /root/server_status_rust/status_client/log.txt 2>&1 &
