@@ -22,10 +22,6 @@ curl -L -O https://github.com/zdz/ServerStatus-Rust/releases/download/${tag}/cli
 unzip -o "client-${ARCHITECTURE}-unknown-linux-musl.zip" && \
 rm "client-${ARCHITECTURE}-unknown-linux-musl.zip"
 
-apt install screen
-
-screen -R status_client
-
 read -p "输入本机名称：" name
 name=${name:-"默认机器名称"}
 
