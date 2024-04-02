@@ -1,3 +1,5 @@
+#!/bin/bash
+
 # 检测操作系统类型
 if [ -f /etc/os-release ]; then
     # freedesktop.org and systemd
