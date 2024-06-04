@@ -55,7 +55,8 @@ handle_apt_lock() {
 # 将更新和安装操作封装为一个函数
 update_pkg() {
     if [[ "$OS" == "Ubuntu" ]] || [[ "$OS" == "Debian" ]]; then
-        sudo apt-get update && sudo apt-get upgrade -y
+        # sudo apt-get update && sudo apt-get upgrade -y
+        sudo apt-get update
     elif [[ "$OS" == "CentOS Linux" ]] || [[ "$OS" == "Fedora" ]]; then
         sudo yum update -y
         # CentOS 8 及以上版本可能需要使用 dnf
@@ -103,7 +104,7 @@ docker pull v2fly/v2fly-core
 mkdir -p /root/socks/
 
 # 创建配置文件脚本
-cat <<'EOF' >./create_socks_config.sh
+cat << 'EOF' >./create_socks_config.sh
 #!/bin/bash
 
 # 用户定义的配置文件路径
