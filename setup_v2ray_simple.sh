@@ -205,7 +205,7 @@ VMESS_USER_ID="00000000-0000-0000-0000-000000000000"
 
 # 初始化V2Ray加密分享链接文件
 SHARE_V2RAY_BASE64_FILE="/root/v2ray/share_v2ray_base64.txt"
-echo "" > "$SHARE_V2RAY_BASE64_FILE"  # 清空旧的分享链接文件内容
+> "$SHARE_V2RAY_BASE64_FILE"  # 清空旧的分享链接文件内容
 
 # 生成并追加每个IP地址的V2Ray分享链接到文件
 for i in "${!IP_ADDRESSES[@]}"; do

@@ -228,7 +228,7 @@ echo "配置文件已创建在 $CONFIG_FILE"
 
 # 初始化V2Ray Socks信息文件
 SHARE_SOCKS_INFO_FILE="/root/socks/share_socks_info.txt"
-echo "" > "$SHARE_SOCKS_INFO_FILE"  # 清空旧的分享链接文件内容
+> "$SHARE_SOCKS_INFO_FILE"  # 清空旧的分享链接文件内容
 
 # 生成并追加每个IP地址的V2Ray Socks分享信息到文件
 for i in "${!IP_ADDRESSES[@]}"; do
@@ -248,7 +248,7 @@ echo "V2Ray Socks 信息已保存到 $SHARE_SOCKS_INFO_FILE"
 
 # 初始化 V2Ray Socks 加密分享链接文件
 SHARE_SOCKS_BASE64_FILE="/root/socks/share_socks_base64.txt"
-echo "" > "$SHARE_SOCKS_BASE64_FILE"  # 清空旧的分享链接文件内容
+> "$SHARE_SOCKS_BASE64_FILE"  # 清空旧的分享链接文件内容
 
 for i in "${!IP_ADDRESSES[@]}"; do
     TAG_NUM=$(printf "%02d" $((i + 1)))
