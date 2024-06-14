@@ -55,7 +55,8 @@ handle_apt_lock() {
 # 封装更新和安装操作为一个函数
 update_pkg() {
     if [[ "$OS" == "Ubuntu" ]] || [[ "$OS" == "Debian" ]]; then
-        sudo apt-get update && sudo apt-get upgrade -y
+        # sudo apt-get update && sudo apt-get upgrade -y
+        sudo apt-get update -y
     elif [[ "$OS" == "CentOS Linux" ]] || [[ "$OS" == "Fedora" ]]; then
         sudo yum update -y
         # CentOS 8及以上版本可能需要使用dnf
