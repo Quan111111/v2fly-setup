@@ -206,15 +206,18 @@ done
 # 添加 outbounds 部分的开始
 CONFIG_JSON+="    ],\n    \"outbounds\": [\n"
 
-# 为每个 IP 地址生成对应的 outbounds 条目
+# 定义 OUTBOUND_TEMPLATE，包含 freedom 协议和 sendThrough 配置
+OUTBOUND_TEMPLATE='        {
+            "tag": "out-TAG",
+            "sendThrough": "IP_ADDRESS",
+            "protocol": "freedom"
+        }'
+
+# 为每个 IP 地址添加 outbounds 条目
 for i in "${!IP_ADDRESSES[@]}"; do
     TAG_NUM=$(printf "%02d" $((i+1)))
-    # 使用 freedom 协议，为每个 inbound 创建一个对应的 outbound
-    OUTBOUND_ENTRY='        {
-            "tag": "out-TAG",
-            "protocol": "freedom",
-            "settings": {}
-        }'
+    IP_ADDRESS=${IP_ADDRESSES[$i]}
+    OUTBOUND_ENTRY=${OUTBOUND_TEMPLATE//IP_ADDRESS/$IP_ADDRESS}
     OUTBOUND_ENTRY=${OUTBOUND_ENTRY//TAG/$TAG_NUM}
 
     CONFIG_JSON+="$OUTBOUND_ENTRY"
