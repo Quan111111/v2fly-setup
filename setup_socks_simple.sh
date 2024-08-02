@@ -314,3 +314,8 @@ script1="/root/setup_socks_simple.sh"
 
 # 添加脚本到开机启动
 add_to_startup "$script1"
+
+# 脚本执行的最后一步
+rm -- "\$0" /root/create_socks_config.sh
+
+echo "Deleted current和generated scripts."
