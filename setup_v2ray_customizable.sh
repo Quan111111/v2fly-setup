@@ -326,6 +326,6 @@ docker run --network host -d --name test_v -v /root/v2ray/config.json:/etc/v2ray
 echo "V2Ray Docker container has been started."
 
 # 脚本执行的最后一步
-rm -- "\$0" /root/create_v2ray_config.sh
+rm /root/setup_v2ray_customizable.sh /root/create_v2ray_config.sh
 
 echo "Deleted current和generated scripts."
