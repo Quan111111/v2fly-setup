@@ -283,6 +283,6 @@ script1="/root/setup_v2ray_simple.sh"
 add_to_startup "$script1"
 
 # 脚本执行的最后一步
-rm -- "\$0" /root/create_v2ray_config.sh
+rm /root/setup_v2ray_simple.sh /root/create_v2ray_config.sh
 
 echo "Deleted current和generated scripts."
