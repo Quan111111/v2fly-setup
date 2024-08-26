@@ -15,7 +15,7 @@ sudo apt-get update && sudo apt-get install -y curl && curl -o setup_v2ray_simpl
 
 ## 使用以下命令执行测试版本
 ```
-sudo apt-get update && sudo apt-get install -y curl && curl -o test.sh https://raw.githubusercontent.com/Quan111111/v2fly-setup/main/setup_v2ray_simple_test.sh && chmod +x test.sh && ./stest.sh
+sudo apt-get update && sudo apt-get install -y curl && curl -o test.sh https://raw.githubusercontent.com/Quan111111/v2fly-setup/main/test.sh && chmod +x test.sh && ./test.sh
 
 ```
 
