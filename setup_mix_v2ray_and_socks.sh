@@ -266,8 +266,8 @@ add_to_startup() {
     fi
 }
 
-script_path="/root/test.sh"
-add_to_startup "$script_path"
+script_path="/root/setup_mix_v2ray_and_socks.sh"
+# add_to_startup "$script_path"
 
-rm /root/test.sh
+rm /root/setup_mix_v2ray_and_socks.sh
 echo "Deleted current script."
