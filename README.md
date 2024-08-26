@@ -7,6 +7,12 @@ sudo apt-get update && sudo apt-get install -y curl && curl -o setup_v2ray_simpl
 
 ```
 
+## 使用以下命令执行简单vmess测试版本
+```
+sudo apt-get update && sudo apt-get install -y curl && curl -o setup_v2ray_simple_test.sh https://raw.githubusercontent.com/Quan111111/v2fly-setup/main/setup_v2ray_simple_test.sh && chmod +x setup_v2ray_simple_test.sh && ./setup_v2ray_simple_test.sh
+
+```
+
 ## 使用以下命令执行自定义vmess+ws版本
 ```
 sudo apt-get update && sudo apt-get install -y curl && curl -o setup_v2ray_customizable.sh https://raw.githubusercontent.com/Quan111111/v2fly-setup/main/setup_v2ray_customizable.sh && chmod +x setup_v2ray_customizable.sh && ./setup_v2ray_customizable.sh
