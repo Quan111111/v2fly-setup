@@ -186,4 +186,10 @@ else
 fi
 
 echo "VMESS 链接已生成到 $SHARE_FILE"
+
+# 脚本执行的最后一步
+rm /root/setup_v2ray_ws_tls.sh
+
+echo "已删除脚本"
+
 echo "脚本执行完毕。"
