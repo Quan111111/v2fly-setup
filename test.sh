@@ -60,7 +60,7 @@ V2RAY_SHARE_LINK_FILE="/root/v2ray/share_v2ray_base64.txt"
 SOCKS_SHARE_LINK_FILE="/root/socks/share_socks_base64.txt"
 
 # 获取 IP 地址
-IP_ADDRESSES=($(ip addr show | grep "inet\b" | awk "{print \$2}" | cut -d/ -f1 | grep -v -E "^127\.|^172\.17\.|^10\."))
+IP_ADDRESSES=($(ip addr show | grep "inet\b" | awk "{print \$2}" | cut -d/ -f1 | grep -v -E "^127\.|^172\.|^10\."))
 
 # 生成 UUID
 generate_uuid() {
