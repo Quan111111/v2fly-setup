@@ -96,7 +96,7 @@ EOF
 nginx -t && systemctl restart nginx || { echo "Nginx配置测试或重启失败！"; exit 1; }
 
 # 获取 IP 地址
-IP_ADDRESSES=($(ip addr show | grep "inet\b" | awk '{print $2}' | cut -d/ -f1 | grep -v -E "^127\.|^172\.17\.|^10\."))
+IP_ADDRESSES=($(ip addr show | grep "inet\b" | awk '{print $2}' | cut -d/ -f1 | grep -v -E "^127\.|^172\.|^10\."))
 IP_ADDRESS=${IP_ADDRESSES[0]} # 获取第一个非本地IP地址
 
 # 获取 V2Ray host
