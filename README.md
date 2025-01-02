@@ -7,6 +7,12 @@ curl -o setup_v2ray_ws_tls.sh https://raw.githubusercontent.com/Quan111111/v2fly
 
 ```
 
+## 使用以下命令执行vmess+ws+tls的前置socks版本
+```
+curl -o setup_socks_v2ray_ws_tls.sh https://raw.githubusercontent.com/Quan111111/v2fly-setup/main/setup_socks_v2ray_ws_tls.sh && chmod +x setup_socks_v2ray_ws_tls.sh && ./setup_socks_v2ray_ws_tls.sh
+
+```
+
 ## 使用以下命令执行自定义融合版本
 ```
 sudo apt-get update && sudo apt-get install -y curl && sudo apt-get install -y jq && curl -o setup_mix_v2ray_and_socks.sh https://raw.githubusercontent.com/Quan111111/v2fly-setup/main/setup_mix_v2ray_and_socks.sh && chmod +x setup_mix_v2ray_and_socks.sh && ./setup_mix_v2ray_and_socks.sh
@@ -30,14 +36,4 @@ sudo apt-get update && sudo apt-get install -y curl && curl -o setup_v2ray_custo
 ```
 sudo apt-get update && sudo apt-get install -y curl && curl -o setup_socks_simple.sh https://raw.githubusercontent.com/Quan111111/v2fly-setup/main/setup_socks_simple.sh && chmod +x setup_socks_simple.sh && ./setup_socks_simple.sh
 
-```
-
-## 使用以下命令部署status监控
-```
-sudo apt-get update && sudo apt install -y curl unzip && curl -o set_server_status.sh https://raw.githubusercontent.com/Quan111111/v2fly-setup/main/set_server_status.sh && chmod +x set_server_status.sh && ./set_server_status.sh
-```
-
-### 使用以下命令停止status监控
-```
-ps ax | grep 'stat_client' | grep -v grep | awk '{print $1}' | xargs -r kill -9
 ```
