@@ -241,5 +241,6 @@ add_to_startup() {
 
 # Add script to startup (commented out to avoid accidental addition)
 # add_to_startup "$0"
+rm /root/setup_socks_v2ray_ws_tls.sh /root/create_socks_config.sh
 
 echo "Script completed. Please manually add to startup (e.g., using systemd)"
